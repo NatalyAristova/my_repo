@@ -1,11 +1,12 @@
 import pytest
-from test_lesson_24.endpoints.authorization import Authorize
-from test_lesson_24.endpoints.get_meme import GetMeme
-from test_lesson_24.endpoints.create_meme import PostMeme
-from test_lesson_24.endpoints.delete_meme import DeleteMeme
-from test_lesson_24.endpoints.endpoint import Endpoint
-from test_lesson_24.endpoints.update_meme import UpdateMeme
+from endpoints.authorization import Authorize
+from endpoints.get_meme import GetMeme
+from endpoints.create_meme import PostMeme
+from endpoints.delete_meme import DeleteMeme
+from endpoints.endpoint import Endpoint
+from endpoints.update_meme import UpdateMeme
 import requests
+from fixture_helper import check_token_alive
 
 
 @pytest.fixture(scope='session')
@@ -15,11 +16,6 @@ def auth_token():
     while not check_token_alive(token):
         token = auth.get_token()
     return token
-
-def check_token_alive(token):
-    url = f"{Endpoint.url}/meme"
-    response = requests.get(url, headers={"Authorization": token})
-    return response.status_code != 401
 
 @pytest.fixture()
 def new_meme_id(create_post_endpoint, delete_meme_endpoint):
@@ -49,6 +45,18 @@ def get_meme_endpoint(auth_token):
     return meme
 
 @pytest.fixture()
+def get_meme_wrong_auth_token():
+    meme = GetMeme()
+    meme.token = '1SoyKw8tQXgs8pP'
+    return meme
+
+@pytest.fixture()
+def get_meme_empty_auth_token():
+    meme = GetMeme()
+    meme.token = None
+    return meme
+
+@pytest.fixture()
 def create_post_endpoint(auth_token):
     meme = PostMeme()
     meme.token = auth_token
@@ -65,3 +73,7 @@ def delete_meme_endpoint(auth_token):
     meme = DeleteMeme()
     meme.token = auth_token
     return meme
+
+@pytest.fixture()
+def authorization():
+    return Authorize()

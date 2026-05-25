@@ -1,7 +1,7 @@
 import pytest
 import allure
-from test_lesson_24.conftest import get_meme_endpoint
-
+from conftest import get_meme_endpoint
+from endpoints.authorization import Authorize
 
 TEST_DATA = [{
     "info": {
@@ -65,7 +65,8 @@ def test_one_meme(get_meme_endpoint, new_meme_id):
     get_meme_endpoint.get_one_meme(new_meme_id)
     get_meme_endpoint.check_response_status_code_is_correct()
     get_meme_endpoint.check_response_id_is_correct(new_meme_id)
-    get_meme_endpoint.check_one_meme_has_required_fields()
+    meme = get_meme_endpoint.response.json()
+    get_meme_endpoint.check_meme_has_required_fields(meme)
 
 
 @allure.feature('Memes managing')
@@ -77,10 +78,10 @@ def test_post_an_object(create_post_endpoint, body):
     create_post_endpoint.check_response_status_code_is_correct()
     id = create_post_endpoint.get_id_from_response()
     create_post_endpoint.check_response_id_is_correct(id)
-    create_post_endpoint.check_response_text_is_correct(body['text'])
-    create_post_endpoint.check_response_tags_are_correct(body['tags'])
-    create_post_endpoint.check_response_info_is_correct(body['info'])
-    create_post_endpoint.check_response_url_is_correct(body['url'])
+    create_post_endpoint.check_response_value_is_correct('text', body['text'])
+    create_post_endpoint.check_response_value_is_correct('tags', body['tags'])
+    create_post_endpoint.check_response_value_is_correct('info', body['info'])
+    create_post_endpoint.check_response_value_is_correct('url', body['url'])
 
 
 @allure.feature('Memes managing')
@@ -89,7 +90,7 @@ def test_post_an_object(create_post_endpoint, body):
 @pytest.mark.parametrize('body', NEGATIVE_TEST_DATA)
 def test_post_an_object_without_data(create_post_endpoint, body):
     create_post_endpoint.create_new_meme(body=body)
-    create_post_endpoint.check_response_status_code_is_correct_400_404()
+    create_post_endpoint.check_response_status_code_is_correct_400()
 
 
 @allure.feature('Memes managing')
@@ -111,10 +112,10 @@ def test_put_meme(update_meme_endpoint, new_meme_id):
 }
     update_meme_endpoint.make_changes_in_meme(new_meme_id, body)
     update_meme_endpoint.check_response_status_code_is_correct()
-    update_meme_endpoint.check_response_text_is_correct(body['text'])
-    update_meme_endpoint.check_response_tags_are_correct(body['tags'])
-    update_meme_endpoint.check_response_info_is_correct(body['info'])
-    update_meme_endpoint.check_response_url_is_correct(body['url'])
+    update_meme_endpoint.check_response_value_is_correct('text', body['text'])
+    update_meme_endpoint.check_response_value_is_correct('tags', body['tags'])
+    update_meme_endpoint.check_response_value_is_correct('info', body['info'])
+    update_meme_endpoint.check_response_value_is_correct('url', body['url'])
 
 
 @allure.feature('Memes managing')
@@ -131,7 +132,7 @@ def test_put_meme_negative(update_meme_endpoint, new_meme_id):
     "url": "updated"
 }
     update_meme_endpoint.make_changes_in_meme(new_meme_id, body)
-    update_meme_endpoint.check_response_status_code_is_correct_400_404()
+    update_meme_endpoint.check_response_status_code_is_correct_400()
 
 
 @allure.feature('Memes managing')
@@ -141,4 +142,46 @@ def test_delete_meme(delete_meme_endpoint, get_meme_endpoint,  new_meme_id):
     delete_meme_endpoint.delete_meme(new_meme_id)
     delete_meme_endpoint.check_response_status_code_is_correct()
     get_meme_endpoint.get_one_meme(new_meme_id)
-    get_meme_endpoint.check_response_status_code_is_correct_400_404()
+    get_meme_endpoint.check_response_status_code_is_correct_404()
+
+@allure.feature('Memes managing')
+@allure.story('DELETE meme')
+@allure.title('Deleting non-existing meme')
+def test_delete_non_existing_meme(delete_meme_endpoint, get_meme_endpoint,  new_meme_id):
+    delete_meme_endpoint.delete_meme(int(new_meme_id) + 1)
+    delete_meme_endpoint.check_response_status_code_is_correct_404()
+
+@allure.feature('Memes managing')
+@allure.story('DELETE meme')
+@allure.title('Deleting foreign meme')
+def test_delete_foreign_meme(authorization, delete_meme_endpoint, new_meme_id):
+    second_token = Authorize().get_token('Foreign user')
+    delete_meme_endpoint.token = second_token
+    delete_meme_endpoint.delete_meme(new_meme_id)
+    delete_meme_endpoint.check_response_status_code_is_403
+
+@allure.feature('Authorization')
+@allure.title('Get memes with wrong auth token')
+def test_all_memes_with_wrong_auth_token(get_meme_wrong_auth_token):
+    get_meme_wrong_auth_token.get_all_memes_not_json()
+    get_meme_wrong_auth_token.check_response_status_code_is_401()
+
+@allure.feature('Authorization')
+@allure.title('Get memes with empty auth token')
+def test_all_memes_with_empty_auth_token(get_meme_empty_auth_token):
+    get_meme_empty_auth_token.get_all_memes_not_json()
+    get_meme_empty_auth_token.check_response_status_code_is_500
+
+@allure.feature('Authorization')
+@allure.title('Authorize with valid name')
+def test_authorize_with_name(authorization):
+    name = 'Boris'
+    authorization.authorize(name)
+    authorization.check_response_status_code_is_correct()
+    authorization.check_response_user_is_correct(name)
+
+@allure.feature('Authorization')
+@allure.title('Authorize without body')
+def test_authorize_without_body(authorization):
+    authorization.authorize_no_body()
+    authorization.check_response_status_code_is_500

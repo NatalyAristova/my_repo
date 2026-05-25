@@ -27,14 +27,35 @@ class Endpoint:
         print(self.response.status_code)
         assert self.response.status_code == 200, 'Status code is incorrect'
 
-    @allure.step('Check that status code is 400')
-    def check_response_status_code_is_correct_400_404(self):
+    @allure.step('Check that status code is 401')
+    def check_response_status_code_is_401(self):
+        assert self.response.status_code == 401, 'Status code is incorrect'
+
+    @allure.step('Check that status code is 403')
+    def check_response_status_code_is_403(self):
+        assert self.response.status_code == 403, 'Status code is incorrect'
+
+    @allure.step('Check that status code is 404')
+    def check_response_status_code_is_correct_404(self):
         print(self.response.status_code)
-        assert self.response.status_code in [404, 400], 'Status code is incorrect'
+        assert self.response.status_code == 404, 'Status code is incorrect'
+
+    @allure.step('Check that status code is 400')
+    def check_response_status_code_is_correct_400(self):
+        print(self.response.status_code)
+        assert self.response.status_code in [400], 'Status code is incorrect'
+
+    @allure.step('Check that status code is 500')
+    def check_response_status_code_is_500(self):
+        assert self.response.status_code == 500, 'Status code is incorrect'
 
     @allure.step('Check that name is the same name as sent')
     def check_response_name_is_correct(self, name):
         assert self.response.json()['name'] == name, 'Name is incorrect'
+
+    @allure.step('Check that user is the same user as sent')
+    def check_response_user_is_correct(self, name):
+        assert self.response.json()['user'] == name, 'Name is incorrect'
 
     @allure.step('Check that id is correct')
     def check_response_id_is_correct(self, id):
@@ -45,8 +66,7 @@ class Endpoint:
         assert len(self.response.json()['data']) > 0, 'Meme list is empty'
 
     @allure.step('Check that each meme has required fields')
-    def check_all_memes_have_required_fields(self):
-        for meme in self.response.json()['data']:
+    def check_meme_has_required_fields(self, meme):
             assert 'id' in meme
             assert 'text' in meme
             assert 'url' in meme
@@ -55,35 +75,15 @@ class Endpoint:
             assert 'updated_by' in meme
 
     @allure.step('Check that each meme has required fields')
-    def check_one_meme_has_required_fields(self):
-            assert 'id' in self.response.json()
-            assert 'text' in self.response.json()
-            assert 'url' in self.response.json()
-            assert 'tags' in self.response.json()
-            assert 'info' in self.response.json()
-            assert 'updated_by' in self.response.json()
+    def check_all_memes_have_required_fields(self):
+        for meme in self.response.json()['data']:
+            self.check_meme_has_required_fields(meme)
 
     @allure.step('Check that id exist in POST response')
     def get_id_from_response(self):
         assert 'id' in self.response.json(), 'No id in response'
         return self.response.json()['id']
 
-    @allure.step('Check that text is correct')
-    def check_response_text_is_correct(self, text):
-        assert self.response.json()['text'] == text
-
-    @allure.step('Check that tags are correct')
-    def check_response_tags_are_correct(self, tags):
-        assert self.response.json()['tags'] == tags
-
-    @allure.step('Check that info is correct')
-    def check_response_info_is_correct(self, info):
-        assert self.response.json()['info'] == info
-
-    @allure.step('Check that url is correct')
-    def check_response_url_is_correct(self, url):
-        assert self.response.json()['url'] == url
-
-    @allure.step('Check that id is correct')
-    def check_response_id_is_correct(self, id):
-        assert self.response.json()['id'] == id
+    @allure.step('Check that value is correct')
+    def check_response_value_is_correct(self, key, expected_value):
+        assert self.response.json()[key] == expected_value

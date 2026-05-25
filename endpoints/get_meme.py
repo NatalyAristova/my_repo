@@ -1,4 +1,4 @@
-from test_lesson_24.endpoints.endpoint import Endpoint
+from endpoints.endpoint import Endpoint
 import requests
 import allure
 
@@ -9,6 +9,11 @@ class GetMeme(Endpoint):
     def get_all_memes(self):
         self.response = requests.get(f'{self.url}/meme', headers=self.get_headers())
         self.json = self.response.json()
+        return self.response
+
+    @allure.step('Get all memes, not json')
+    def get_all_memes_not_json(self):
+        self.response = requests.get(f'{self.url}/meme', headers=self.get_headers())
         return self.response
 
     @allure.step('Get one meme')
