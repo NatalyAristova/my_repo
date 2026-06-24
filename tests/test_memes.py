@@ -1,6 +1,5 @@
 import pytest
 import allure
-from conftest import get_meme_endpoint
 from endpoints.authorization import Authorize
 
 TEST_DATA = [{
@@ -158,7 +157,7 @@ def test_delete_foreign_meme(authorization, delete_meme_endpoint, new_meme_id):
     second_token = Authorize().get_token('Foreign user')
     delete_meme_endpoint.token = second_token
     delete_meme_endpoint.delete_meme(new_meme_id)
-    delete_meme_endpoint.check_response_status_code_is_403
+    delete_meme_endpoint.check_response_status_code_is_403()
 
 @allure.feature('Authorization')
 @allure.title('Get memes with wrong auth token')
@@ -170,7 +169,7 @@ def test_all_memes_with_wrong_auth_token(get_meme_wrong_auth_token):
 @allure.title('Get memes with empty auth token')
 def test_all_memes_with_empty_auth_token(get_meme_empty_auth_token):
     get_meme_empty_auth_token.get_all_memes_not_json()
-    get_meme_empty_auth_token.check_response_status_code_is_500
+    get_meme_empty_auth_token.check_response_status_code_is_401()
 
 @allure.feature('Authorization')
 @allure.title('Authorize with valid name')
@@ -184,4 +183,4 @@ def test_authorize_with_name(authorization):
 @allure.title('Authorize without body')
 def test_authorize_without_body(authorization):
     authorization.authorize_no_body()
-    authorization.check_response_status_code_is_500
+    authorization.check_response_status_code_is_500()

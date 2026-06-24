@@ -43,10 +43,11 @@ class Endpoint:
     @allure.step('Check that status code is 400')
     def check_response_status_code_is_correct_400(self):
         print(self.response.status_code)
-        assert self.response.status_code in [400], 'Status code is incorrect'
+        assert self.response.status_code == 400, 'Status code is incorrect'
 
     @allure.step('Check that status code is 500')
     def check_response_status_code_is_500(self):
+        print(self.response.status_code)
         assert self.response.status_code == 500, 'Status code is incorrect'
 
     @allure.step('Check that name is the same name as sent')
